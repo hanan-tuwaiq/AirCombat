@@ -1,0 +1,14 @@
+body{
+    background-color: rgb(36, 36, 36);
+}
+.container{
+    border: 1px solid white;
+    width: 700px;
+    position: absolute;
+    top: 50%;
+    left:50%;
+    transform: translate(-50%,-50%);
+}
+#canvas{
+    background-color: rgb(24, 24, 24);
+}
