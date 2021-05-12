@@ -39,14 +39,17 @@ class Bullet {
         }
     }
 }
-class Enemy {
+class Enemy {  
     constructor(enemyX, enemyY) {
         this.enemyX = enemyX;
         this.enemyY = enemyY
     }
     drawEnemy() {
-        context.fillStyle = 'red';
-        context.fillRect(this.enemyX, this.enemyY, 50, 50);
+        let missile = new Image();
+        missile.src = "assets/missile.png";
+        context.drawImage(missile, this.enemyX, this.enemyY, 50, 50);
+        //context.fillStyle = 'red';
+        //context.fillRect(this.enemyX, this.enemyY, 50, 50);
     }
     drawBoss() {
         context.fillStyle = 'red';
@@ -74,15 +77,32 @@ function drawCover(a, b) {
 }
 
 function drawCharacter() {
+    let seaImage = new Image();
+    seaImage.src = "assets/sea-bg.png";
     context.fillStyle = 'blue';
     context.fillRect(characterX, characterY, 100, 50);
 }
 function drawScore() {
     context.fillStyle = 'white';
-
     context.font = '15px sans-serif';
     context.fillText("Kills: " + hits, width - 50, 20, 30);
+}
+let seaImage = new Image();
+seaImage.src = "assets/sea-bg.png";
+let imageY = -1200;
+let cloudsImage = new Image();
+cloudsImage.src = "assets/clouds-bg.png";
+cloudsImageY = -1200;
+function drawBackgroundImage() {
+    context.drawImage(seaImage, 0, imageY);
+    imageY += 3;
+    if (imageY >= 700) imageY = -1100;
+}
 
+function drawCloudsImage() {
+    context.drawImage(cloudsImage, 0, cloudsImageY);
+    cloudsImageY++;
+    if (cloudsImageY >= 700) cloudsImageY = -1100;
 }
 //
 // MAIN FUNCTION
@@ -96,30 +116,29 @@ function drawScore() {
         if (characterX < width - 100)
             characterX += gameSpeed + gameSpeed / 2;
     }
-    if (e.keyCode == '32') {
-        //IMPLEMENT: shooting 
+    if (e.keyCode == '32') {//space bar
         bullets.push(new Bullet(characterX + 50, characterY - 25));
     }
 });
 let enemies = [];
 let boss;
 
-let intervl = setInterval(() => {
+let interval = setInterval(() => {
     for (let i = 0; i < 2; i++) {
         let enemy = new Enemy(Math.random() * (width - 50), Math.random() * -50);
         enemies.push(enemy);
     }
 }, speed);
 
-
 function drawGame() {
     clearScreen();
+    drawBackgroundImage();
     drawCharacter();
     drawScore();
     drawCover(x, y);
     drawCover(x2, y);
-    if (hits > 10) {
-        clearInterval(intervl);
+    if (hits > 50) {//BOSS CODE
+        clearInterval(interval);
         enemies = [];
         boss = new Enemy(width / 2, 200);
         boss.drawBoss();
@@ -149,10 +168,11 @@ function drawGame() {
             });
         }
     });
+    drawCloudsImage();
     let timeout = setTimeout(drawGame, gameSpeed);
 }
 function clearScreen() {
-    context.fillStyle = 'rgb(20, 20, 20)';
+    context.fillStyle = '#0048A0';
     context.fillRect(0, 0, canvas.width, canvas.height);
 }
 drawGame();
