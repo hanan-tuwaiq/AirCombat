@@ -3,132 +3,68 @@ let context = canvas.getContext('2d');
 const width = canvas.width;
 const height = canvas.height;
 let characterX = width / 2 - 50;
-let characterY = height - 50;
+let characterY = height - 110;
 let gameSpeed = 10;
-let speed = 1000;//1sec
 let x = Math.random() * (width - 40);
 let x2 = Math.random() * (width - 40);
-let y = (Math.random() * 100) + 420;
+let y = (Math.random() * 100) + 360;
 let hits = 0;
 let bullets = [];
-
-class Bullet {
-    constructor(bulletX, bulletY) {
-        this.bulletX = bulletX;
-        this.bulletY = bulletY;
-    }
-    drawBullet() {
-        context.fillStyle = 'yellow';
-        context.fillRect(this.bulletX, this.bulletY, 5, 20);
-    }
-    animateBullet(direction = 1) {
-        if (direction == 1)
-            this.bulletY -= 10;
-        else {
-            this.bulletY += 10;
-        }
-    }
-    checkBulletCollision(enemyX, enemyY) {
-        return !(this.bulletX + 5 < enemyX || this.bulletX > enemyX + 50 || this.bulletY > enemyY + 50 || this.bulletY + 20 < enemyY); //enemy collision
-    }
-    checkBulletCollisionWithCover() {
-        if (!(this.bulletX + 5 < x || this.bulletX > x + 50 || this.bulletY > y + 50 || this.bulletY + 20 < y)) {
-            return true;
-        } else if (!(this.bulletX + 5 < x2 || this.bulletX > x2 + 50 || this.bulletY > y + 50 || this.bulletY + 20 < y)) {
-            return true;
-        }
-    }
-}
-class Enemy {  
-    constructor(enemyX, enemyY) {
-        this.enemyX = enemyX;
-        this.enemyY = enemyY
-    }
-    drawEnemy() {
-        let missile = new Image();
-        missile.src = "assets/missile.png";
-        context.drawImage(missile, this.enemyX, this.enemyY, 50, 50);
-        //context.fillStyle = 'red';
-        //context.fillRect(this.enemyX, this.enemyY, 50, 50);
-    }
-    drawBoss() {
-        context.fillStyle = 'red';
-        context.fillRect(width / 2, 200, 150, 100);
-    }
-    animateEnemies() {
-        this.enemyY += gameSpeed * 0.15;
-    }
-    checkCollision() {
-        if (!(x + 80 < this.enemyX || x > this.enemyX + 50 || y > this.enemyY + 50 || y + 20 < this.enemyY)) {//cover 1 collision
-            return true;
-        } else if (!(x2 + 80 < this.enemyX || x2 > this.enemyX + 50 || y > this.enemyY + 50 || y + 20 < this.enemyY)) {//cover 1 collision
-            return true;
-        }
-    }
-    checkCharCollision() {
-        return !(characterX + 100 < this.enemyX || characterX > this.enemyX + 50 || characterY > this.enemyY + 50 || characterY + 50 < this.enemyY)
-    }
-}
+let enemies = [];
+let boss;
+let bossBullets = [];
+let bossShooting;
+let bossHealth = 20;
+let shot = false;
 
 function drawCover(a, b) {
     context.fillStyle = 'white';
-    context.fillRect(a, b, 80, 20);
+    context.fillRect(a, b, 80, 10);
     context.fill();
 }
 
 function drawCharacter() {
-    let seaImage = new Image();
-    seaImage.src = "assets/sea-bg.png";
-    context.fillStyle = 'blue';
-    context.fillRect(characterX, characterY, 100, 50);
+    let pJet = new Image();
+    pJet.src = "assets/player-jet.png";
+    context.drawImage(pJet, characterX, characterY, 72.5, 105);
 }
+
 function drawScore() {
-    context.fillStyle = 'white';
-    context.font = '15px sans-serif';
-    context.fillText("Kills: " + hits, width - 50, 20, 30);
-}
-let seaImage = new Image();
-seaImage.src = "assets/sea-bg.png";
-let imageY = -1200;
-let cloudsImage = new Image();
-cloudsImage.src = "assets/clouds-bg.png";
-cloudsImageY = -1200;
-function drawBackgroundImage() {
-    context.drawImage(seaImage, 0, imageY);
-    imageY += 3;
-    if (imageY >= 700) imageY = -1100;
+    context.fillStyle = 'yellow';
+    context.font = '20px sans-serif';
+    context.fillText("Kills: " + hits, width - 50, 30, 40);
+    if (hits >= 50) {
+        context.fillText("Health: " + bossHealth, width - 50, 70, 40);
+    }
 }
 
-function drawCloudsImage() {
-    context.drawImage(cloudsImage, 0, cloudsImageY);
-    cloudsImageY++;
-    if (cloudsImageY >= 700) cloudsImageY = -1100;
-}
-//
-// MAIN FUNCTION
-// 
-(document.body).addEventListener('keydown', (e) => {
-    if (e.keyCode == '37') {//left
-        if (characterX > 0)
-            characterX -= gameSpeed + gameSpeed / 2;
-    }
-    if (e.keyCode == '39') {//right
-        if (characterX < width - 100)
-            characterX += gameSpeed + gameSpeed / 2;
-    }
-    if (e.keyCode == '32') {//space bar
-        bullets.push(new Bullet(characterX + 50, characterY - 25));
-    }
-});
-let enemies = [];
-let boss;
-
-let interval = setInterval(() => {
+let enemiesSpawn = setInterval(() => {
     for (let i = 0; i < 2; i++) {
-        let enemy = new Enemy(Math.random() * (width - 50), Math.random() * -50);
+        let enemy = new Enemy(Math.random() * (width - 100), Math.random() * - 50, 12, 50);
         enemies.push(enemy);
     }
-}, speed);
+}, 1000);
+
+boss = new Boss(width / 2 - 50, 100);
+bossShooting = setInterval(() => {
+    if (Math.floor(Math.random() * 10) % 2 == 0)
+        bossBullets.push(new Bullet(boss.bossX + 50, boss.bossY + 100));
+}, 500);
+let gameOver = false;
+
+//BACKGROUND
+let skyImage = new Image();
+skyImage.src = "assets/sky-bg.png";
+let imageY = -1200;
+let imageY2 = -2400;
+function drawBackgroundImage() {
+    context.drawImage(skyImage, 0, imageY);
+    context.drawImage(skyImage, 0, imageY2);
+    imageY += 1;
+    imageY2 += 1;
+    if (imageY > 1200) imageY = -1200;
+    if (imageY2 > 1200) imageY2 = -1200;
+}
 
 function drawGame() {
     clearScreen();
@@ -137,42 +73,102 @@ function drawGame() {
     drawScore();
     drawCover(x, y);
     drawCover(x2, y);
-    if (hits > 50) {//BOSS CODE
-        clearInterval(interval);
-        enemies = [];
-        boss = new Enemy(width / 2, 200);
-        boss.drawBoss();
+
+    if (hits < 50) {
+        level1();
+    } else {
+        level2();
     }
-    enemies.forEach(element => {
-        element.drawEnemy();
-        element.animateEnemies()
-        if (element.checkCollision() || element.enemyY >= height) {
-            enemies.splice(enemies.indexOf(element), 1)
-        }
-        else if (element.checkCharCollision()) {
-            //alert('lost');
-            //clearTimeout(timeout);
-        }
-        if (bullets.length != 0) {
-            bullets.forEach(b => {
-                b.drawBullet();
-                b.animateBullet();
-                if (b.bulletY <= 0 || b.checkBulletCollisionWithCover()) {
-                    bullets.splice(bullets.indexOf(b), 1);
-                }
-                if (b.checkBulletCollision(element.enemyX, element.enemyY)) {
-                    enemies.splice(enemies.indexOf(element), 1)
-                    bullets.splice(bullets.indexOf(b), 1);
+    if (shot) {    
+        bullets.forEach(bullet => {
+            bullet.drawBullet("assets/bullet.png");
+            bullet.animateBullet();
+            enemies.forEach(en => {
+                if (bullet.checkBulletCollision(en.enemyX, en.enemyY, 12, 50)) {
                     hits++;
+                    bullets.splice(bullets.indexOf(bullet), 1);
+                    enemies.splice(enemies.indexOf(en), 1);   
+                }
+                if (bullet.bulletY <= 0 || bullet.checkBulletCollisionWithCover()) {
+                    bullets.splice(bullets.indexOf(bullet), 1);
                 }
             });
-        }
-    });
-    drawCloudsImage();
+        });
+    }
     let timeout = setTimeout(drawGame, gameSpeed);
+    if (gameOver) {
+        drawScore();
+        clearTimeout(timeout);
+    }
 }
+
 function clearScreen() {
-    context.fillStyle = '#0048A0';
+    context.fillStyle = '#2757A6';
     context.fillRect(0, 0, canvas.width, canvas.height);
 }
+
+function level1() {
+    enemies.forEach(element => {
+        element.drawEnemy();
+        if (element.checkCollision() || element.enemyY >= height) {
+            enemies.splice(enemies.indexOf(element), 1);
+        } else if (element.checkCharCollision()) {
+            context.fillStyle = 'red';
+            context.font = '35px sans-serif';
+            context.fillText("LOST", width / 2 - 50, height / 2 - 50, 100);
+            gameOver = true;
+        }
+    });
+}
+
+function level2() {
+    clearInterval(enemiesSpawn);
+    enemies = [];
+    boss.drawBoss();
+    boss.animateBoss();
+    if (bossBullets.length != 0) {
+        bossBullets.forEach(bossBullet => {
+            bossBullet.drawBullet("assets/bullet-boss.png");
+            bossBullet.animateBullet(2);
+            if (bossBullet.bulletY >= height || bossBullet.checkBulletCollisionWithCover()) {
+                bossBullets.splice(bossBullets.indexOf(bossBullet), 1);
+            }
+            if (bossBullet.checkBulletCollision(characterX, characterY, 72.5, 105)) {
+                context.fillStyle = 'red';
+                context.font = '35px sans-serif';
+                context.fillText("LOST", width / 2 - 50, height / 2 - 50, 100);
+                gameOver = true;
+            }
+            //winning code
+            bullets.forEach(b => {
+                if (boss.checkBossHealth(b)) {
+                    bullets.splice(bullets.indexOf(b), 1);
+                    bossHealth--;
+                    if (bossHealth == 0) {
+                        context.fillStyle = 'yellow';
+                        context.font = '35px sans-serif';
+                        context.fillText("Winner!", width / 2 - 50, height / 2 - 50, 100);
+                        clearInterval(bossShooting);
+                        gameOver = true;
+                    }
+                }
+            })
+        });
+    }
+}
+
+(document.body).addEventListener('keydown', (e) => {
+    if (e.keyCode == '37') { //left
+        if (characterX > 0)
+            characterX -= gameSpeed * 3;
+    }
+    if (e.keyCode == '39') { //right
+        if (characterX < width - 100)
+            characterX += gameSpeed * 3;
+    }
+    if (e.keyCode == '32') { //space bar
+        bullets.push(new Bullet(characterX + 30, characterY - 25));
+        shot = true;
+    }
+});
 drawGame();
