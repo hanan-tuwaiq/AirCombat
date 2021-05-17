@@ -81,7 +81,7 @@ function drawGame() {
     }
     if (shot) {    
         bullets.forEach(bullet => {
-            bullet.drawBullet("/assets/bullet.png");
+            bullet.drawBullet("https://github.com/hanan-tuwaiq/AirCombat/blob/53759ca6345b1cacca43c5935304656762cbb2d4/assets/bullet.PNG");
             bullet.animateBullet();
             enemies.forEach(en => {
                 if (bullet.checkBulletCollision(en.enemyX, en.enemyY, 12, 50)) {
