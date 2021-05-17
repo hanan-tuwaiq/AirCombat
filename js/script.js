@@ -81,7 +81,7 @@ function drawGame() {
     }
     if (shot) {    
         bullets.forEach(bullet => {
-            bullet.drawBullet("https://github.com/hanan-tuwaiq/AirCombat/blob/53759ca6345b1cacca43c5935304656762cbb2d4/assets/bullet.PNG");
+            bullet.drawBullet("assets/bullet.png");
             bullet.animateBullet();
             enemies.forEach(en => {
                 if (bullet.checkBulletCollision(en.enemyX, en.enemyY, 12, 50)) {
@@ -128,7 +128,7 @@ function level2() {
     boss.animateBoss();
     if (bossBullets.length != 0) {
         bossBullets.forEach(bossBullet => {
-            bossBullet.drawBullet("/assets/bullet-boss.png");
+            bossBullet.drawBullet("assets/bullet-boss.png");
             bossBullet.animateBullet(2);
             if (bossBullet.bulletY >= height || bossBullet.checkBulletCollisionWithCover()) {
                 bossBullets.splice(bossBullets.indexOf(bossBullet), 1);
